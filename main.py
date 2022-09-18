@@ -18,6 +18,8 @@ from sklearn.metrics import balanced_accuracy_score, roc_auc_score, make_scorer
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import plot_confusion_matrix
+from sklearn import svm
+
 
 import pandas
 import numpy as np
@@ -233,6 +235,9 @@ K_Accuracy_Pair[K_Accuracy_Pair['Accuracy']==max(K_Accuracy_Pair['Accuracy'])]
 # The neural network's accuracy was around 76% to 80% depending on the epoch.
 
 
+
+
+
 # Let's try comparing these results to a logistic regression model.
 
 from sklearn.linear_model import LogisticRegression
@@ -263,6 +268,9 @@ print(confusion_matrix)
 
 # The logistic regression's accuracy was about 75.3%.
 # The corresponding polynomial value was 3, 4, 8, or 9. I would choose polynomial=3.
+
+
+
 
 
 # Adding support for XGBoost model.
@@ -371,4 +379,37 @@ Importance_DF = pandas.DataFrame(Importances)
 Importance_DF.columns = Diabetes.drop('Outcome',axis=1).columns
 
 Importance_DF = Importance_DF.set_index([['Weight','Gain','Cover','Total_Gain','Total_Cover']])
+
+
+
+# Adding support vector machine model.
+
+clf = svm.SVC()
+clf.fit(X_train, y_train)
+
+# This is the prediction function for the classification support vector machine model.
+def SVM_CLF_Prediction(Pregnancies,
+                       Glucose,
+                       BloodPressure,
+                       SkinThickness,
+                       Insulin,
+                       BMI,
+                       DiabetesPedigreeFunction,
+                       Age):
+    Prediction = clf.predict([[Pregnancies,
+                       Glucose,
+                       BloodPressure,
+                       SkinThickness,
+                       Insulin,
+                       BMI,
+                       DiabetesPedigreeFunction,
+                       Age]])
+    return Prediction
+
+# The classifications are working as expected.
+SVM_CLF_Prediction(Pregnancies=0.1, Glucose=0.1, BloodPressure=0.1, SkinThickness=0.1, Insulin=0.1, BMI=0.1,
+                   DiabetesPedigreeFunction=0.1, Age=0.1)
+
+SVM_CLF_Prediction(Pregnancies=0.5, Glucose=0.5, BloodPressure=0.5, SkinThickness=0.5, Insulin=0.5, BMI=0.5,
+                   DiabetesPedigreeFunction=0.5, Age=0.5)
 
