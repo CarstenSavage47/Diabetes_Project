@@ -13,6 +13,11 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix, classification_report
 from sklearn import preprocessing
 from statsmodels.formula.api import ols
+import xgboost as xgb
+from sklearn.metrics import balanced_accuracy_score, roc_auc_score, make_scorer
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import plot_confusion_matrix
 
 import pandas
 import numpy as np
@@ -260,5 +265,110 @@ print(confusion_matrix)
 # The corresponding polynomial value was 3, 4, 8, or 9. I would choose polynomial=3.
 
 
+# Adding support for XGBoost model.
 
+XGB = xgb.XGBClassifier(objective='binary:logistic',
+                            missing=0,
+                            seed=47)
+XGB.fit(X_train,
+        y_train,
+        verbose=True,
+        early_stopping_rounds=15,
+        eval_metric = 'aucpr',
+        eval_set=[(X_test,y_test)])
+
+plot_confusion_matrix(XGB,
+                      X_test,
+                      y_test,
+                      values_format='d',
+                      display_labels=["Healthy","Diabetic"])
+
+# As with previous datasets, XGBoost is already doing a great job with almost zero tuning.
+
+# Let's optimize the parameters - First Pass.
+To_Optimize_Parameters = {
+    'max_depth':[1,2,3,4,5],
+    'learning_rate':[1.0,0.1,0.01,0.001],
+    'gamma':[0,0.5,1.0],
+    'reg_lambda':[0,1.0,10.0],
+    'scale_pos_weight':[1,3,5]
+}
+
+# Now we have the following optimal parameters for XGBoost tuning:
+# {'gamma': 1.0, 'learning_rate': 0.1, 'max_depth': 2, 'reg_lambda': 1.0, 'scale_pos_weight': 1}
+
+# Second round - Not needed
+#To_Optimize_Parameters = {
+#    'max_depth':[2],
+#    'learning_rate':[0.1],
+#    'gamma':[1.0],
+#    'reg_lambda':[1.0],
+#    'scale_pos_weight':[1.0]
+#}
+
+# Run the following chunks for each pass (for each To_Optimize_Parameters)
+optimal_params = GridSearchCV(
+    estimator=xgb.XGBClassifier(objective='binary:logistic',
+                                seed=47,
+                                subsample=0.9,
+                                colsample_bytree=0.5),
+    param_grid = To_Optimize_Parameters,
+    scoring = 'roc_auc',
+    verbose = 0,
+    n_jobs = 10,
+    cv = 3
+)
+
+optimal_params.fit(X_train,
+                   y_train,
+                   early_stopping_rounds=15,
+                   eval_metric='auc',
+                   eval_set=[(X_test,y_test)],
+                   verbose=False)
+
+# This function will give us the optimal parameters for each pass.
+print(optimal_params.best_params_)
+
+# Now that we have the optimal parameters, let's try rerunning the XGBoost algorithm.
+# {'gamma': 1.0, 'learning_rate': 0.1, 'max_depth': 2, 'reg_lambda': 1.0, 'scale_pos_weight': 1}
+
+
+XGB_Refined = xgb.XGBClassifier(seed = 47,
+                                objective='binary:logistic',
+                                gamma=1.0,
+                                learn_rate=0.1,
+                                max_depth=2,
+                                reg_lambda=1.0,
+                                scale_pos_weights=1.0,
+                                subsample=0.9,
+                                colsample_bytree=0.5)
+
+XGB_Refined.fit(X_train,
+                y_train,
+                verbose=True,
+                early_stopping_rounds=15,
+                eval_metric='aucpr',
+                eval_set=[(X_test,y_test)])
+
+plot_confusion_matrix(XGB_Refined,
+                      X_test,
+                      y_test,
+                      values_format='d',
+                      display_labels=["Healthy","Diabetic"])
+
+# Getting a 77.2% accuracy rate with XGBoost.
+# After tuning the parameters, our model is better at predicting Healthy people and worse at predicting Diabetic people.
+# Before tuning the parameters, our model is better at predicting Diabetic people.
+
+Importances = []
+
+bst = XGB_Refined.get_booster()
+for importance_type in ('weight','gain','cover','total_gain','total_cover'):
+    print('%s: ' % importance_type, bst.get_score(importance_type=importance_type))
+    Importances.append(bst.get_score(importance_type=importance_type))
+print(X.columns)
+Importance_DF = pandas.DataFrame(Importances)
+Importance_DF.columns = Diabetes.drop('Outcome',axis=1).columns
+
+Importance_DF = Importance_DF.set_index([['Weight','Gain','Cover','Total_Gain','Total_Cover']])
 
