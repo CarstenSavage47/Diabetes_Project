@@ -412,4 +412,3 @@ SVM_CLF_Prediction(Pregnancies=0.1, Glucose=0.1, BloodPressure=0.1, SkinThicknes
 
 SVM_CLF_Prediction(Pregnancies=0.5, Glucose=0.5, BloodPressure=0.5, SkinThickness=0.5, Insulin=0.5, BMI=0.5,
                    DiabetesPedigreeFunction=0.5, Age=0.5)
-
