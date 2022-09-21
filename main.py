@@ -364,7 +364,7 @@ plot_confusion_matrix(XGB_Refined,
                       values_format='d',
                       display_labels=["Healthy","Diabetic"])
 
-# Getting a 77.2% accuracy rate with XGBoost.
+## Getting a 77.2% accuracy rate with XGBoost.
 # After tuning the parameters, our model is better at predicting Healthy people and worse at predicting Diabetic people.
 # Before tuning the parameters, our model is better at predicting Diabetic people.
 
