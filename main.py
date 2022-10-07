@@ -27,7 +27,7 @@ import numpy as np
 
 Diabetes = pandas.read_csv('/Users/carstenjuliansavage/Desktop/R Working Directory/diabetes.csv')
 
-## Exploratory Data Analysis
+# Exploratory Data Analysis
 
 pandas.set_option('display.max_columns', None)
 
