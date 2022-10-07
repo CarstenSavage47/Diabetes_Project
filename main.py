@@ -19,6 +19,7 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import plot_confusion_matrix
 from sklearn import svm
+import plotly.express as px
 
 
 import pandas
@@ -26,9 +27,56 @@ import numpy as np
 
 Diabetes = pandas.read_csv('/Users/carstenjuliansavage/Desktop/R Working Directory/diabetes.csv')
 
+## Exploratory Data Analysis
+
 pandas.set_option('display.max_columns', None)
 
 Diabetes.describe()
+
+corrMatrix = Diabetes.corr()
+print(corrMatrix)
+
+# Correlation Matrix Version 1
+fig = px.imshow(corrMatrix)
+
+## Correlation Matrix Version 2
+
+Corr_Heat = sns.heatmap(corrMatrix,
+                 cbar=True,
+                 annot=True,
+                 square=True,
+                 fmt='.2f',
+                 annot_kws={'size': 10},
+                 yticklabels=corrMatrix.columns,
+                 xticklabels=corrMatrix.columns,
+                 cmap="Spectral_r")
+plt.show()
+
+Pair_Plot = px.scatter_matrix(Diabetes)
+Pair_Plot.show()
+
+# Evaluating kurtosis:
+# 1. Mesokurtic: Data follows a normal distribution
+# 2. Leptokurtic: Heavy tails on either side, indicating large outliers. Looks like Top-Thrill Dragster.
+# 3. Playtkurtic: Flat tails indicate that there aren't many outliers.
+
+# A kurtosis value greater than +1 indicates the graph is very peaked. Leptokurtic.
+# A kurtosis value less than -1 indicates the graph is relatively flat. Playtkurtic.
+# A kurtosis value of 0 indicates that the graph follows a normal distribution. Mesokurtic.
+
+# Evaluating skewness:
+# 1. A negative value indicates the tail is on the left side of the distribution.
+# 2. A positive value indicates the tail is on the right side of the distribution.
+# 3. A value of zero indicates that there is no skewness in the distribution; it's perfectly symmetrical.
+
+Kurtosis_x_Skewness = []
+
+for col in Diabetes:
+    print(f"Skewness for {col}: {Diabetes[col].skew()}")
+    print(f"Kurtosis for {col}: {Diabetes[col].kurt()}")
+    Kurtosis_x_Skewness.append({"Column":col,"Skewness":Diabetes[col].skew(),"Kurtosis":Diabetes[col].kurt()})
+
+Kurtosis_x_Skewness_DF = pandas.DataFrame(Kurtosis_x_Skewness)
 
 X = (Diabetes
  .drop(['Outcome'],axis=1)
@@ -42,7 +90,6 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 # Let's check to make sure that y_train and y_test are successfully stratified.
 y_train.agg({'mean'})
 y_test.agg({'mean'})
-
 
 # Scaling the data to be between 0 and 1
 min_max_scaler = preprocessing.MinMaxScaler()
