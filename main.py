@@ -55,7 +55,7 @@ plt.show()
 Pair_Plot = px.scatter_matrix(Diabetes)
 Pair_Plot.show()
 
-## Evaluating kurtosis:
+# Evaluating kurtosis:
 # 1. Mesokurtic: Data follows a normal distribution
 # 2. Leptokurtic: Heavy tails on either side, indicating large outliers. Looks like Top-Thrill Dragster.
 # 3. Playtkurtic: Flat tails indicate that there aren't many outliers.
